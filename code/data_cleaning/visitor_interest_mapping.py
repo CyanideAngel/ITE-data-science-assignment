@@ -21,7 +21,7 @@ def fetch_unique_categories(x):
     category_set.discard("") # Discarding empty strings, if we didn't find any match in the interest mapping
     return category_set
 
-def map_visitor_interests(visitor_data, ):
+def map_visitor_interests(visitor_data):
     """
     Given visitor_data, use their answers, mapped with the above dictionary to find unique categories of interest per visitor
     """
