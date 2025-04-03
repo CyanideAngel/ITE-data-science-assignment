@@ -7,11 +7,16 @@ def parse_visitor_data(visitors_df, answers_df, questions_df):
     - use visitor answers and questions to join with visitor data
     - returns one row per (visitor_id, question, answer)
     """
+    # fixing the id columns first
+    visitors_df.rename({'id': 'visitorId'}, axis=1, inplace=True) # To prevent confusion later
+    answers_df.rename({'id': 'answerId'}, axis=1, inplace=True) # To prevent confusion later
+    questions_df.rename({'id': 'questionId'}, axis=1, inplace=True) # To prevent confusion later
+
     # parse the data column as a json
     visitors_df['parsed_data'] = visitors_df['data'].apply(lambda x : json.loads(x))
 
     # explode each answer row into multiple rows
-    exploded_visitors = visitors_df.explode('parsed_data').drop("data", axis=1).copy()
+    exploded_visitors = visitors_df.explode('parsed_data').drop("data", axis=1)
 
     # extract all the key-value pairs from parsed_data
     exploded_visitors['stepId'] = exploded_visitors['parsed_data'].apply(lambda x: x.get('stepId'))
@@ -24,9 +29,9 @@ def parse_visitor_data(visitors_df, answers_df, questions_df):
     exploded_visitors.drop("parsed_data", axis=1, inplace=True)
 
     # join with answers + questions
-    final_df = exploded_visitors.merge(answers_df, on=['answerId', 'questionId'], how='left').merge(questions_df, on=['questionId', 'stepId'], how='left')
+    visitor_data = exploded_visitors.merge(answers_df, on=['answerId', 'questionId'], how='left').merge(questions_df, on=['questionId', 'stepId'], how='left')
 
     # cleaning the exploded join, with only valid questions from our question bank
-    final_df = final_df[~final_df['question'].isnull()]
+    visitor_data = visitor_data[~visitor_data['question'].isnull()]
 
-    return final_df
+    return visitor_data
